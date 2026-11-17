@@ -1,0 +1,1186 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roadster Lab — 6 vòi · Double DQN</title><style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f3f5f7;
+  color: #172b3c;
+  font: 14px system-ui, sans-serif;
+}
+
+header {
+  padding: 22px 30px;
+  background: #fff;
+  border-bottom: 1px solid #dce3e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h1 {
+  margin: 4px 0;
+  font-size: 25px;
+}
+
+small,
+.muted {
+  color: #6b7d8a;
+}
+
+.tag {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #07877d;
+  font-weight: 800;
+}
+
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 20px;
+  padding: 24px;
+  max-width: 1680px;
+  margin: auto;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #dce3e8;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e7ecef;
+  gap: 8px;
+  align-items: center;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 640px;
+  touch-action: none;
+  background: #102331;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  padding: 18px;
+  gap: 12px;
+}
+
+.metrics strong {
+  display: block;
+  font-size: 23px;
+  margin-top: 6px;
+}
+
+.timerMetric strong {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.035em;
+  color: #087e73;
+}
+
+.timerMetric {
+  background: #edf7f5;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.panel {
+  padding: 20px;
+}
+
+.panel h3 {
+  margin: 0 0 15px;
+}
+
+label {
+  display: block;
+  margin: 16px 0 7px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #078f83;
+}
+
+button,
+select {
+  font: inherit;
+  border: 1px solid #ced8de;
+  border-radius: 8px;
+  background: white;
+  padding: 10px 13px;
+  cursor: pointer;
+  color: #172b3c;
+}
+
+button:hover {
+  background: #e9f8f5;
+}
+
+button.primary {
+  background: #078f83;
+  color: #fff;
+  border-color: #078f83;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.valves {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.valves button {
+  padding: 10px 0;
+  font-weight: 700;
+}
+
+.valves button.on {
+  background: #ffb747;
+  border-color: #ef9e20;
+  color: #392a09;
+}
+
+p {
+  line-height: 1.65;
+}
+
+.note {
+  font-size: 12px;
+  background: #edf6f5;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+td,
+th {
+  text-align: left;
+  border-bottom: 1px solid #edf0f2;
+  padding: 9px 5px;
+}
+
+.bottom {
+  padding: 20px;
+  margin-top: 18px;
+}
+
+#status {
+  color: #078f83;
+  font-weight: 700;
+}
+
+select {
+  width: 100%;
+}
+
+footer {
+  padding: 0 26px 24px;
+  color: #708391;
+  font-size: 12px;
+}
+
+@media (max-width: 950px) {
+  main {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  canvas {
+    height: 500px;
+  }
+
+  header {
+    padding: 16px;
+  }
+
+  .metrics strong {
+    font-size: 18px;
+  }
+}
+button {
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 3px solid #52bdb4;
+  outline-offset: 3px;
+}
+
+.valves button.on {
+  box-shadow: 0 0 15px #ffb74788, inset 0 0 10px #fff6;
+  background: #ffc35b;
+}
+
+.valves button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+canvas {
+  cursor: grab;
+}
+
+canvas.dragging {
+  cursor: grabbing;
+}
+
+#result {
+  padding: 12px;
+  background: #f1f6f7;
+  border-radius: 8px;
+}
+
+.bar {
+  min-height: 64px;
+}
+
+#status {
+  font-size: 12px;
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
+
+#dqnlab {
+  grid-column: 1 / -1;
+}
+
+.dqnconfig {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.dqnconfig label {
+  font-size: 12px;
+  margin: 5px 0;
+}
+
+.dqnconfig input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced8de;
+  border-radius: 7px;
+  font: inherit;
+  margin-top: 6px;
+}
+
+.dqnconfig select {
+  margin-top: 6px;
+}
+
+.dqnmetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.dqnmetrics > div {
+  background: #eff5f5;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.dqnmetrics strong {
+  display: block;
+  font-size: 22px;
+  margin-top: 5px;
+}
+
+.networkWrap {
+  background: #102331;
+  border-radius: 12px;
+  overflow: auto;
+}
+
+#network {
+  display: block;
+  width: 100%;
+  min-width: 540px;
+  max-height: 370px;
+}
+
+.dqnTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.qrow {
+  display: grid;
+  grid-template-columns: 130px 1fr 65px;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.qrow.chosen {
+  background: #dcf4ec;
+}
+
+.qrow meter {
+  width: 100%;
+}
+
+#learningChart {
+  width: 100%;
+}
+
+details {
+  margin-top: 15px;
+}
+
+summary {
+  cursor: pointer;
+  padding: 12px;
+  background: #eff5f5;
+  border-radius: 8px;
+}
+
+#learnStatus {
+  color: #087e73;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 700px) {
+  .dqnconfig,
+  .dqnmetrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dqnTwo {
+    grid-template-columns: 1fr;
+  }
+}
+
+body > details {
+  max-width: 1272px;
+  margin: 0 auto 20px;
+  padding: 0 18px;
+}
+
+input[type="checkbox"] {
+  width: auto;
+  accent-color: #078f83;
+}
+
+@media (max-width: 700px) {
+  .metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== Layout tinh gọn cho các box 04–06 ===== */
+#dqnlab {
+  padding: 22px;
+  margin-top: 18px;
+  background: #fbfcfd;
+  border-color: #d9e3e8;
+}
+
+#dqnlab > .lab-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5ecef;
+}
+
+#dqnlab > .lab-header h2 {
+  font-size: 22px;
+  margin: 5px 0 6px;
+}
+
+#dqnlab > .lab-header p {
+  margin: 0;
+  color: #667b88;
+  max-width: 900px;
+}
+
+.lab-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 14px 0 18px;
+}
+
+.lab-flow > div {
+  background: #eef5f5;
+  border: 1px solid #e1ebeb;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #49616d;
+  min-width: 0;
+}
+
+.lab-flow b {
+  display: block;
+  color: #176f69;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.lab-top-grid {
+  display: grid;
+  grid-template-columns: minmax(310px, 0.92fr) minmax(420px, 1.18fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.lab-box {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #dce5e9;
+  border-radius: 14px;
+  padding: 17px 18px;
+  box-shadow: 0 2px 8px rgba(27, 55, 70, 0.035);
+}
+
+.lab-box-head {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  margin-bottom: 13px;
+}
+
+.lab-box-head .step {
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #e5f3f1;
+  color: #087e73;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.lab-box-head h3 {
+  margin: 0 0 3px;
+  font-size: 16px;
+}
+
+.lab-box-head p {
+  margin: 0;
+  color: #72838d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.lab-box .note {
+  margin-top: 10px;
+}
+
+.lab-box p {
+  margin-top: 8px;
+  margin-bottom: 9px;
+}
+
+.lab-box details {
+  margin-top: 10px;
+  border: 1px solid #e5ecef;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.lab-box details > summary {
+  background: #f4f7f8;
+  padding: 11px 13px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.lab-box details[open] > summary {
+  border-bottom: 1px solid #e5ecef;
+  border-radius: 0;
+}
+
+.lab-box details > p,
+.lab-box details > .dqnconfig,
+.lab-box details > .buttons,
+.lab-box details > #evalResult,
+.lab-box details > #rewardBreakdown {
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+.lab-box details > p:first-of-type {
+  margin-top: 12px;
+}
+
+#rewardBox .dqnconfig {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+#rewardBox .dqnconfig label {
+  background: #f8fafb;
+  border: 1px solid #e8eef1;
+  border-radius: 8px;
+  padding: 8px 9px;
+  margin: 0;
+}
+
+#rewardBox .buttons {
+  margin: 12px 0;
+  gap: 7px;
+}
+
+#rewardBox .buttons button {
+  flex: 1 1 140px;
+  font-size: 12px;
+  padding: 9px 10px;
+}
+
+#rewardBox #evalResult {
+  padding: 10px 11px;
+  background: #f4f7f8;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+#standardRecipe {
+  background: #f8fafb;
+  border: 1px solid #e5ecef;
+  padding: 0;
+  overflow: hidden;
+}
+
+#standardRecipe > summary {
+  background: #f4f7f8;
+  padding: 11px 13px;
+  font-size: 13px;
+}
+
+#standardRecipe .recipe-body {
+  padding: 0 12px 12px;
+}
+
+#standardRecipe table {
+  font-size: 11px;
+}
+
+#standardRecipe td,
+#standardRecipe th {
+  padding: 7px 5px;
+  vertical-align: top;
+}
+
+#standardRecipe .primary {
+  margin: 5px 12px 12px;
+}
+
+#trainingBox .algorithm-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin-bottom: 10px;
+}
+
+#trainingBox .setting-tile {
+  background: #f7fafb;
+  border: 1px solid #e6edf0;
+  border-radius: 9px;
+  padding: 10px 11px;
+  min-width: 0;
+}
+
+#trainingBox .setting-tile label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: #506773;
+}
+
+#trainingBox .setting-tile p {
+  font-size: 11px;
+  color: #7a8a93;
+  margin: 5px 0 0;
+}
+
+#trainingBox .setting-tile select {
+  margin-top: 7px;
+}
+
+#trainingBox .setting-tile input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+#trainingBox .setting-tile.check-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+#trainingBox .setting-tile.check-tile label {
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+#trainingBox .dqnconfig {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+#trainingBox .dqnconfig label {
+  background: #f8fafb;
+  border: 1px solid #e8eef1;
+  border-radius: 8px;
+  padding: 8px 9px;
+  margin: 0;
+  font-size: 11px;
+}
+
+#trainingBox .dqnconfig input,
+#trainingBox .dqnconfig select {
+  font-size: 12px;
+  padding: 8px;
+  margin-top: 5px;
+}
+
+.lab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.lab-actions button {
+  font-size: 12px;
+  padding: 9px 11px;
+  min-height: 40px;
+}
+
+.lab-actions .primary-action {
+  background: #078f83;
+  color: #fff;
+  border-color: #078f83;
+}
+
+.lab-actions .secondary-action {
+  background: #f5f8f9;
+}
+
+#learnStatus {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: #edf7f5;
+  border-left: 3px solid #078f83;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#monitorBox {
+  margin-top: 16px;
+}
+
+#monitorBox .monitor-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+#monitorBox .dqnmetrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 12px 0 15px;
+}
+
+#monitorBox .dqnmetrics > div {
+  border: 1px solid #e3ebee;
+  background: #f6f9fa;
+  padding: 10px 11px;
+  border-radius: 9px;
+  min-width: 0;
+}
+
+#monitorBox .dqnmetrics small {
+  font-size: 11px;
+  line-height: 1.3;
+  display: block;
+}
+
+#monitorBox .dqnmetrics strong {
+  font-size: 19px;
+  overflow-wrap: anywhere;
+}
+
+#monitorBox .networkWrap {
+  border-radius: 10px;
+  padding: 8px;
+}
+
+#monitorBox #network {
+  max-height: 300px;
+}
+
+#monitorBox .network-help {
+  font-size: 11px;
+  margin: 8px 0;
+  color: #71828c;
+}
+
+#monitorBox #neuronInfo {
+  margin-top: 10px;
+}
+
+#monitorBox .dqnTwo {
+  gap: 14px;
+  margin-top: 14px;
+}
+
+#monitorBox .dqnTwo > div {
+  min-width: 0;
+  border: 1px solid #e5ecef;
+  border-radius: 11px;
+  padding: 13px;
+  background: #fff;
+}
+
+#monitorBox .dqnTwo h3 {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+
+#monitorBox #qValues {
+  font-size: 12px;
+}
+
+#monitorBox #qValues > div {
+  gap: 6px !important;
+}
+
+#monitorBox #qValues > div > div {
+  padding: 9px !important;
+}
+
+#monitorBox #updateDetail {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+#monitorBox #chartHost {
+  overflow: hidden;
+}
+
+#monitorBox #learningChart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#monitorBox details {
+  margin-top: 13px;
+}
+
+@media (max-width: 1050px) {
+  .lab-top-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #trainingBox .dqnconfig {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  #dqnlab {
+    padding: 14px;
+  }
+
+  .lab-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lab-top-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-box {
+    padding: 13px;
+  }
+
+  #trainingBox .algorithm-row {
+    grid-template-columns: 1fr;
+  }
+
+  #trainingBox .dqnconfig {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #monitorBox .dqnmetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #monitorBox .dqnTwo {
+    grid-template-columns: 1fr;
+  }
+
+  #dqnlab > .lab-header h2 {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 420px) {
+  #rewardBox .dqnconfig,
+  #trainingBox .dqnconfig {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-flow {
+    gap: 6px;
+  }
+
+  .lab-flow > div {
+    padding: 8px;
+  }
+}
+
+
+</style>
+
+<header>
+  <div>
+    <div class="tag">THẾ HỆ 6 VAN</div>
+    <h1>NHÂN Lab</h1>
+    <small>Xe 2D lấy cảm hứng từ Tesla Roadster · 6 vòi phun cố định</small>
+  </div>
+  <span class="tag">2D SANDBOX</span>
+</header>
+<main><section><div class="card"><div class="bar"><span>01 / Không gian thử nghiệm</span><span id="status" role="status">Sẵn sàng · kéo xe để đặt vị trí</span></div><canvas id="scene" aria-label="Không gian mô phỏng xe, kéo xe để đặt vị trí"></canvas><div class="metrics"><div><small>Độ cao trọng tâm</small><strong id="mh">—</strong></div><div><small>Vận tốc đứng</small><strong id="mv">—</strong></div><div><small>Góc thân xe</small><strong id="ma">—</strong></div><div><small>Khí còn lại</small><strong id="mq">—</strong></div><div><small>Số vòng lộn</small><strong id="ml">0</strong></div><div class="timerMetric" title="Thời gian mô phỏng kể từ khi nhấn Thả xe"><small>Thời gian rơi</small><strong id="mt" aria-live="off">00:00.00</strong></div></div></div><div class="card bottom"><h3 style="margin-top:0">Bản bố trí cố định</h3><p class="muted">Đầu xe hướng sang phải. Miệng vòi kim loại cố định; vệt sương trắng xanh biểu diễn khí thoát ra; mũi tên vàng là lực lên xe. Góc dương = ngẩng đầu.</p><table><tr><th>Vòi</th><th>Tọa độ trên thân (m)</th><th>Lực cố định / mômen</th></tr><tbody id="positions"></tbody></table><p class="muted" style="font-size:12px">Gốc tại trọng tâm; +x về đầu xe, +y lên mái. Thân 4,4 × 0,9 m; khối lượng 1.200 kg. V1, V2, V5, V6: 9.000 N/vòi; V3, V4: 6.000 N/vòi. Trọng lực = 1.200 × 9,81 = 11.772 N. Cặp V1 + V2 tạo lực nâng 18.000 N, bằng 1,53 lần trọng lực (gia tốc nâng thuần tối đa khoảng 5,19 m/s²). V5 + V6 cũng có tổng lực 18.000 N, hướng xuống theo trục thân; khi xe lộn ngược, lực này đổi thành lực nâng theo phương thẳng đứng. Mô hình giả lập phục vụ giảng dạy.</p></div></section><aside><div class="card panel"><h3>02 / Thiết lập lần thả</h3><p class="muted" style="font-size:12px">Kéo thân xe để di chuyển. Kéo nút ↻ trên xe để xoay tự do, hoặc giữ Shift và kéo thân xe. Có thể dựng đứng ±90° và lật ngược ±180°.</p><label>Góc ban đầu <b id="angleLabel">15°</b></label><input aria-label="Góc ban đầu" id="angle" type="range" min="-180" max="180" value="15"><label>Độ cao trọng tâm <b id="heightLabel">6 m</b></label><input aria-label="Độ cao ban đầu" id="height" type="range" min="1.5" max="23" step="0.1" value="6"><label>Chế độ điều khiển</label><select id="mode"><option value="manual">Thủ công · chọn từng van</option><option value="auto" selected>Tự đáp · bộ điều khiển mẫu</option><option value="dqn">DQN · mạng sinh viên thiết kế</option><option value="free">Rơi tự do · không phun</option></select><div class="buttons"><button class="primary" id="run">▶ Thả xe</button><button id="pause">Tạm dừng</button><button id="reset">↺ Đặt lại</button></div><div class="note">Đồng hồ Thời gian rơi bắt đầu khi nhấn Thả xe, tạm dừng khi tạm dừng mô phỏng và trở về 00:00.00 khi đặt lại. Đây là thời gian mô phỏng, không phải đồng hồ thời gian thực của máy tính. Tự đáp mẫu chọn tổ hợp tốt nhất bằng cách duyệt 64 cấu hình vòi phun theo lực và mômen mong muốn. Mạng DQN 64 hành động được khởi tạo ngẫu nhiên; hãy huấn luyện ở mục 04 trước khi dùng DQN để đánh giá hiệu suất.</div><label><input type="checkbox" id="forces" checked> Hiện nhãn vòi và lực</label></div><div class="card panel" style="margin-top:18px"><h3>03 / Bảng van</h3><p class="muted" style="font-size:12px">Bấm một trong 6 van để chuyển sang thủ công và bật/tắt van đó. Đèn cam = đang mở; khi tạm dừng, hiệu ứng chỉ là xem trước.</p><div class="valves" id="valves"></div><div class="buttons"><button id="off">Đóng tất cả</button><button id="lift">Mở cặp vòi nâng dưới</button></div><p class="muted" style="font-size:12px">V1: đuôi-dưới ↑ · V2: đầu-dưới ↑<br>V3: giữa-phải → · V4: giữa-trái ←<br>V5: đuôi-trên ↓ · V6: đầu-trên ↓<br>V1 + V2: nâng thẳng (18.000 N); V5 + V6: cặp vòi nâng dự phòng khi xe lộn ngược.</p></div><div class="card panel" style="margin-top:18px"><h3>Kết quả lần thử</h3><p id="result">Kéo xe trong vùng mô phỏng, chỉnh góc rồi nhấn Thả xe.</p><div id="gradeResult" class="note">Điểm tham khảo sẽ xuất hiện sau lần đáp. Điểm RL và chia sẻ chat do giảng viên đánh giá riêng.</div><small>Đáp an toàn: |vᵧ| &lt; 1 m/s, |vₓ| &lt; 0,5 m/s, |góc chuẩn hóa| &lt; 5°, |ω| &lt; 0,2 rad/s và thân không chạm đất. Mô hình kết thúc tại lần tiếp xúc đầu tiên.</small></div></aside><div class="card bottom" id="dqnlab">
+  <div class="lab-header">
+    <div>
+      <div class="tag">DEEP Q LEARNING · 6 VÒI · JAVASCRIPT</div>
+      <h2>Double DQN · Trung tâm huấn luyện & phân tích</h2>
+      <p>Mạng MLP gồm 9 đầu vào và 64 đầu ra Q, mỗi đầu ra tương ứng một tổ hợp bật/tắt 6 van. Có thể dùng Double DQN hoặc DQN cổ điển để đối chiếu.</p>
+    </div>
+  </div>
+  <div class="lab-flow" aria-label="Quy trình học tăng cường">
+    <div><b>01 · Quan sát</b>Đọc trạng thái s của xe</div>
+    <div><b>02 · Chọn hành động</b>ε-greedy trên 64 tổ hợp</div>
+    <div><b>03 · Nhận thưởng</b>Mô phỏng và thu r, s′</div>
+    <div><b>04 · Cập nhật Q</b>Replay, target network, gradient</div>
+  </div>
+
+  <div class="lab-top-grid">
+    <section class="lab-box" id="rewardBox">
+      <div class="lab-box-head">
+        <span class="step">04</span>
+        <div><h3>Hàm thưởng & kiểm định</h3><p>Thiết lập mục tiêu đáp, tốc độ, vị trí và số vòng lộn</p></div>
+      </div>
+      <details open>
+        <summary>Cấu hình phần thưởng</summary>
+        <p>Thưởng +200 khi đáp an toàn; +30 nếu hai bánh nằm trong vùng xanh. Va chạm thất bại −100; hết giờ −500; vượt biên −250. Chạm đất phạt thêm 2(vx²+vy²) và 10(1−cosθ). Chi phí khí 0,2/% và thời gian cơ bản 1/giây; sau 5 giây phạt bổ sung 4/giây. Mỗi vòng lộn hoàn tất được +1. Phạt góc chỉ khi chạm đất. Thất bại va chạm luôn bằng −½ hệ số thưởng an toàn.</p>
+        <div class="dqnconfig" id="rewardFields"></div>
+        <div class="buttons">
+          <button id="applyReward">Áp dụng thưởng & học lại</button>
+          <button id="defaultReward">Điền bộ thưởng mẫu</button>
+          <button id="evaluateNet" class="primary">Kiểm tra 100 lượt · ε = 0</button>
+        </div>
+        <p id="evalResult">Chưa kiểm tra độc lập. Kiểm tra không cập nhật trọng số và không thêm replay.</p>
+        <div id="rewardBreakdown" class="note">Chưa có bước thưởng. Các hệ số chỉ có hiệu lực sau khi bấm Áp dụng; thao tác này xóa trọng số và replay cũ.</div>
+        <p>r_gốc = thưởng kết thúc + thưởng vùng + thưởng vòng lộn − phạt vượt biên/hết giờ − w_đáp(vx²+vy²) − w_góc(1−cosθ_chạm) − w_khí Δkhí − w_thời_gian Δt − phạt sau mốc 5 giây. r_học = 0,01 × (r_gốc + F), với F là potential shaping tùy chọn.</p>
+      </details>
+      <details id="standardRecipe">
+        <summary>Cấu hình huấn luyện tham khảo · 6 vòi</summary>
+        <div class="recipe-body">
+          <p><b>Không gian bay:</b> rộng 40 m (x=−20…20), cao 25 m. Miền đánh giá mặc định lấy x∈[−2,2] m, cao 4–9 m và góc ban đầu theo lựa chọn độ khó. Không suy ra chất lượng mô hình từ reward train.</p>
+          <table><tr><th>Thiết lập</th><th>Giá trị tham khảo</th></tr><tr><td>Trạng thái / hành động</td><td>9 đặc trưng / 64 tổ hợp van</td></tr><tr><td>Mạng / thuật toán</td><td>9 → 64 → 64 → 64 · ReLU · Double DQN</td></tr><tr><td>Tối ưu</td><td>Seed 42 · RMSProp · lr 0,0005 · γ 0,995 · Huber</td></tr><tr><td>Ví dụ chuyên gia</td><td>500 lượt; chỉ lưu transition từ lượt đáp an toàn, giới hạn 20.000 mẫu</td></tr><tr><td>Học có hướng dẫn</td><td>75.000 cập nhật tham khảo · batch 64 · TD + 5×margin 0,2</td></tr><tr><td>Replay / target</td><td>Replay tối đa 50.000 · sao chép target mỗi 500 cập nhật</td></tr><tr><td>Kiểm định</td><td>100 trạng thái cố định, ε=0; không cập nhật trọng số</td></tr></table>
+          <p><b>Quy trình:</b> Áp dụng cấu hình → tạo ví dụ & học có hướng dẫn hoặc huấn luyện DQN → kiểm tra 100 lượt → lưu HTML kèm trọng số.</p>
+          <p>So với bản 4 vòi, không gian hành động tăng từ 16 lên 64 tổ hợp. Khối lượng được giữ đúng thông số mẫu ban đầu là 1.200 kg; lực và mômen đã được tính lại cho cả 6 vòi. File không có trọng số huấn luyện sẵn; cần ghi nhận kết quả thực tế và nên thử ít nhất 3 seed độc lập.</p>
+        </div>
+        <button id="applyPreset" class="primary">Áp dụng cấu hình tham khảo · tạo mạng mới</button>
+        <p id="validationReport" class="recipe-body">Chưa có validation trong phiên này. Tập validation và tập test phải tách biệt khi báo cáo.</p>
+      </details>
+    </section>
+
+    <section class="lab-box" id="trainingBox">
+      <div class="lab-box-head">
+        <span class="step">05</span>
+        <div><h3>Cấu hình & huấn luyện</h3><p>Chọn thuật toán, chiến lược shaping và thông số tối ưu</p></div>
+      </div>
+      <div class="algorithm-row">
+        <div class="setting-tile"><label for="algorithm">Thuật toán</label><select id="algorithm"><option value="double">Double DQN · khuyến nghị</option><option value="classic">DQN cổ điển · theo slide</option></select></div>
+        <div class="setting-tile check-tile"><input type="checkbox" id="shaping" checked><label for="shaping">Potential-based shaping<p>F = γΦ(s′) − Φ(s), đặt Φ = 0 tại trạng thái kết thúc.</p></label></div>
+        <div class="setting-tile check-tile"><input type="checkbox" id="curriculum" checked><label for="curriculum">Học từ dễ tới khó<p>Curriculum theo độ cao, góc và vị trí ban đầu.</p></label></div>
+      </div>
+      <div class="note"><b>Reward clipping</b><label style="margin:7px 0 3px;font-weight:400"><input id="clipReward" type="checkbox"> Chặn thưởng: r học = sign(r), trong {−1, 0, +1}</label><small>Khuyến nghị tắt để giữ khác biệt giữa đáp an toàn, va chạm và hết giờ. Đổi thiết lập cần khởi tạo lại để không trộn kinh nghiệm.</small></div>
+      <details>
+        <summary>Giải thích potential shaping & curriculum</summary>
+        <p>F=γΦ(s′)−Φ(s), Φ=−10√(x²+max(0,h−0,72)²)−4√(vx²+vy²). Potential không chứa góc nghiêng. Reward gốc và đánh giá an toàn được giữ riêng. Dạng potential shaping có cơ sở lý thuyết bảo toàn chính sách tối ưu trong điều kiện phù hợp, nhưng không bảo đảm mạng sâu hội tụ.</p>
+        <p>Curriculum: 300 lượt đầu cao 1,2–3 m, góc tối đa ±3°, x±0,2 m; lượt 301–800 cao 2–5 m, góc tối đa ±8°, x±0,5 m; sau đó cao 4–9 m, x±2 m và góc theo độ khó đã chọn. Tập kiểm định độc lập không dùng curriculum.</p>
+      </details>
+      <div class="dqnconfig" style="margin-top:12px">
+        <label>Seed huấn luyện<input id="seed" type="number" min="0" max="4294967295" step="1" value="42"></label>
+        <label>Lớp ẩn (cách nhau dấu phẩy)<input id="layers" value="64,64" placeholder="Ví dụ: 32,32" aria-label="Các lớp ẩn"></label>
+        <label>Hàm kích hoạt<select id="activation"><option value="relu">ReLU</option><option value="tanh">Tanh</option></select></label>
+        <label>Loss<select id="lossKind"><option value="mse">MSE · theo slide</option><option value="huber" selected>Huber · mở rộng</option></select></label>
+        <label>Learning rate<input id="lr" type="number" min="0.00001" max="0.01" step="0.0001" value="0.0005"></label>
+        <label>Gamma γ<input id="gamma" type="number" min="0" max="0.999" step="0.001" value="0.995"></label>
+        <label>Batch size<select id="batch"><option>8</option><option>16</option><option>32</option><option selected>64</option></select></label>
+        <label>Target mỗi N cập nhật<input id="targetEvery" type="number" min="10" max="5000" value="500"></label>
+        <label>Số lượt huấn luyện<input id="episodes" type="number" min="1" max="10000" value="300"></label>
+        <label>Góc ban đầu<select id="difficulty"><option value="15">±15° · nhập môn</option><option value="30">±30°</option><option value="90">±90°</option><option value="180">±180° · khó</option></select></label>
+      </div>
+      <div class="lab-actions">
+        <button id="demoLearn">Tạo ví dụ & học có hướng dẫn</button>
+        <button id="trainNet" class="primary-action">▶ Huấn luyện DQN</button>
+        <button id="pauseNet">Dừng học</button>
+        <button id="testNet">Thử DQN với xe đã đặt</button>
+      </div>
+      <div class="lab-actions">
+        <button id="buildNet" class="secondary-action">Khởi tạo mạng mới</button>
+        <button id="oneStep" class="secondary-action">1 bước mô phỏng</button>
+        <button id="oneUpdate" class="secondary-action">1 lần cập nhật</button>
+        <button id="saveHTML" class="secondary-action">Tải HTML kèm trọng số</button>
+      </div>
+      <p id="learnStatus" role="status">Sẵn sàng. Huấn luyện sẽ thay đổi trọng số thực, cần nhiều lượt để cải thiện.</p>
+    </section>
+  </div>
+
+  <section class="lab-box" id="monitorBox">
+    <div class="monitor-head">
+      <div class="lab-box-head">
+        <span class="step">06</span>
+        <div><h3>Theo dõi mạng & kết quả học</h3><p>Quan sát tiến trình tối ưu, Q-value, loss và cấu trúc mạng neural</p></div>
+      </div>
+    </div>
+    <div class="dqnmetrics" id="learnMetrics"></div>
+    <div class="networkWrap"><div id="networkHost"></div></div>
+    <p class="network-help">Màu nút: kích hoạt âm (cam) / dương (xanh). Đường nối biểu diễn trọng số âm/dương; độ đậm theo độ lớn. Sơ đồ hiển thị tối đa 12 nút/lớp, nhưng toàn bộ nút khai báo đều được tính. Bấm một nút để xem thông tin.</p>
+    <div id="neuronInfo" class="note">Chọn một nút trên sơ đồ để xem giá trị kích hoạt, bias và trọng số.</div>
+    <div class="dqnTwo">
+      <div><h3>Tổ hợp 6 van được chọn</h3><div id="qValues"></div></div>
+      <div><h3>Mẫu cập nhật gần nhất · DQN / Double DQN</h3><div id="updateDetail" class="note">Chưa cập nhật. Cần tích lũy đủ batch mẫu trong replay buffer.</div><h3 style="margin-top:15px">Reward mỗi lượt / Loss</h3><div id="chartHost"></div><small>Hai dải có thang riêng, tự co giãn. Reward: xanh · Loss: cam. Giữ tối đa 200 điểm gần nhất.</small></div>
+    </div>
+    <details>
+      <summary>Định nghĩa trạng thái, hành động và quy trình cập nhật</summary>
+      <p>Trạng thái: [x/10,h/15,vx/10,vy/10,sinθ,cosθ,ω/5,khí/100,t/20]. Hành động: đủ 64 tổ hợp độc lập của V1…V6. Mỗi quyết định 0,1 s, vật lý 120 Hz; tối đa 20 s. Replay tối đa 50.000, batch 64 (có thể chọn 8–64), warmup 512, cập nhật mỗi 4 bước; ε: mạng mới 1→0,05 trong 100.000 bước; mạng đã học ví dụ 0,1→0,05 trong 100.000 bước. Huber mặc định, RMSProp decay 0,95, gradient ±1. Target sao chép theo số cập nhật, không theo số lượt.</p>
+      <p>Chỉ số thành công train lấy tối đa 50 lượt gần nhất, có khám phá epsilon; chưa phải kiểm định độc lập. Reward được tính theo hệ số đang áp dụng ở box 04.</p>
+    </details>
+  </section>
+</div>
+</main><details><summary>Căn cứ thiết kế & giới hạn thực nghiệm</summary><p><b>Mô hình 6 vòi theo thông số gốc:</b> Thân 4,4 × 0,9 m; khối lượng 1.200 kg; trọng lực 11.772 N; mômen quán tính I = 1.200 × (4,4² + 0,9²) / 12 ≈ 2.017 kg·m². V1/V2 ở đuôi-dưới và đầu-dưới, hướng lên, mỗi vòi 9.000 N; V3/V4 ở hai bên thân, hướng ngang, mỗi vòi 6.000 N; V5/V6 ở đuôi-trên và đầu-trên, hướng xuống theo trục thân, mỗi vòi 9.000 N. Tiêu hao khí giữ theo loại vòi: V1/V2/V5/V6 là 3%/s; V3/V4 là 2%/s. Mỗi cặp vòi nâng (V1+V2 hoặc V5+V6 khi xe lộn ngược) tạo 18.000 N, bằng 1,53 lần trọng lực. Với tọa độ V5 = (−1,5; +0,45) m và hướng (0; −1), mômen V5 = +13.500 N·m; V6 = (+1,5; +0,45) m có mômen −13.500 N·m. Hai mômen đối nhau nên khi mở đồng thời, cặp V5/V6 không tạo mômen tổng, chỉ tạo lực dọc trục thân. Khi xe lộn ngược, hướng lực của cặp này trở thành hướng nâng trong hệ quy chiếu thế giới.</p><p><b>Học tăng cường:</b> mạng MLP nhận 9 đặc trưng trạng thái và xuất 64 giá trị Q, mỗi giá trị ứng với một tổ hợp bật/tắt của 6 van. Double DQN chọn hành động kế tiếp bằng mạng online và đánh giá bằng mạng target; replay buffer lấy mẫu batch; RMSProp cập nhật trọng số; target network được sao chép định kỳ. Reward gồm đáp an toàn, vị trí, va chạm, vận tốc chạm đất, góc chạm đất, khí, thời gian, phạt sau mốc 5 giây và số vòng lộn hoàn tất.</p><p><b>Trạng thái mô hình:</b> file này khởi tạo mạng 6 vòi với trọng số ngẫu nhiên tương thích 64 hành động. Mạng 16 đầu ra của bản 4 vòi đã được loại bỏ vì không thể sử dụng cho không gian hành động mới. Cần huấn luyện và chạy “Kiểm tra 100 lượt · ε = 0” trong phiên của bạn trước khi báo cáo tỷ lệ đáp; file không tuyên bố đã có tỷ lệ thành công hoặc đã chứng minh hội tụ. Việc lưu HTML giữ trọng số mạng hiện tại, nhưng không giữ replay buffer và trạng thái optimizer để resume chính xác.</p><p><b>Giới hạn vật lý:</b> đây là mô phỏng vật rắn 2D có lực đẩy cố định, không phải mô hình kỹ thuật của Tesla Roadster, không mô phỏng khí động học, hệ điều khiển áp suất, cấu trúc bình khí hay hệ treo thực tế. Vòng lộn được đếm từ góc tích lũy chưa chuẩn hóa; tín hiệu quan sát của DQN vẫn dùng sin/cos góc để tránh gián đoạn tại ±π. Do đó học chính sách lộn nhiều vòng là bài toán khó hơn điều khiển đáp an toàn và cần đánh giá riêng.</p><p><a href="https://gymnasium.farama.org/environments/box2d/lunar_lander/" target="_blank" rel="noopener">Gymnasium LunarLander</a>: tham khảo cách thiết kế môi trường lander. <a href="https://arxiv.org/abs/1509.06461" target="_blank" rel="noopener">van Hasselt, Guez & Silver · Double DQN</a>: giảm overestimation. <a href="https://ai.stanford.edu/~ang/papers/shaping-icml99.pdf" target="_blank" rel="noopener">Ng, Harada & Russell · Potential-based shaping</a>: dạng γΦ(s′)−Φ(s).</p></details><footer>Mô phỏng giáo dục với lực và mômen vật rắn 2D; không mô phỏng đầy đủ hệ thống xe Tesla, giảm áp bình khí hoặc hệ treo.</footer><script>
+window.addEventListener("error",e=>{const box=document.getElementById("learnStatus");if(box)box.textContent="Lỗi chạy mô phỏng: "+e.message});
+</script><script>
+(()=>{
+let rngState=42;function random(){rngState|=0;rngState=(rngState+0x6D2B79F5)|0;let q=rngState;q=Math.imul(q^q>>>15,q|1);q^=q+Math.imul(q^q>>>7,q|61);return((q^q>>>14)>>>0)/4294967296}
+const $=id=>document.getElementById(id),c=$('scene'),ctx=c.getContext('2d');
+const jets=[[-1.5,-.45,0,1],[1.5,-.45,0,1],[-2.2,0,1,0],[2.2,0,-1,0],[-1.5,.45,0,-1],[1.5,.45,0,-1]];
+const THRUST=[9000,9000,6000,6000,9000,9000], GAS=[3,3,2,2,3,3];
+const FLIGHT={halfWidth:20,height:25};
+let demoBusy=false,demoCancel=false,demoReplay=[],demoCount=0,netOrigin='Khởi tạo ngẫu nhiên',warmStart=false;let training=false;let dragMode="move",rotationOffset=0;let controlClock=0,inferenceClock=0,impact=null,dragOffset={x:0,y:0};let s,run=false,ended=false,drag=false,t=0,acc=0,last=0,W,H,scale,originX,ground;let active=Array(6).fill(false),manual=Array(6).fill(false),startX=0,startAngle=0;const mass=1200,I=mass*(4.4**2+.9**2)/12;
+function reset(){run=false;ended=false;t=0;acc=0;s={x:startX,y:+$('height').value,vx:0,vy:0,a:+$('angle').value*Math.PI/180,w:0,q:100};startAngle=s.a;controlClock=0;inferenceClock=0;impact=null;manual.fill(false);active.fill(false);$('status').textContent='Sẵn sàng · kéo xe để đặt vị trí';$('result').textContent='Cấu hình đã sẵn sàng. Nhấn Thả xe để thử.';$('pause').textContent='Tạm dừng';constrainInitial();sync()}
+function sync(){active.forEach((v,i)=>{let b=$('v'+i);b.classList.toggle('on',v);b.setAttribute('aria-pressed',String(v));b.disabled=ended||training;});$('pause').disabled=ended||t===0&&!run;$('angleLabel').textContent=$('angle').value+'°';$('heightLabel').textContent=(+$('height').value).toFixed(1)+' m';const elapsed=Math.max(0,t),minutes=Math.floor(elapsed/60),seconds=Math.floor(elapsed%60),centiseconds=Math.floor((elapsed-Math.floor(elapsed))*100);$('mt').textContent=String(minutes).padStart(2,'0')+':'+String(seconds).padStart(2,'0')+'.'+String(centiseconds).padStart(2,'0')}
+jets.forEach((j,i)=>{let b=document.createElement('button');b.id='v'+i;b.textContent='V'+(i+1);b.setAttribute('aria-label','Bật tắt vòi '+(i+1));b.onclick=()=>{if(ended)return;if($('mode').value!=='manual'){manual=[...active];$('mode').value='manual'}manual[i]=!manual[i];active=[...manual];$('status').textContent=run?'Thủ công · đang mô phỏng':'Xem trước van · chưa tác dụng lực';sync()};$('valves').append(b);let[x,y,dx,dy]=j,dir=dy>0?'↑':dy<0?'↓':dx>0?'→':'←',moment=(x*dy-y*dx)*THRUST[i];$('positions').insertAdjacentHTML('beforeend',`<tr><td><b>V${i+1}</b></td><td>(${x.toFixed(1)}; ${y.toFixed(2)})</td><td>${dir} ${THRUST[i].toLocaleString('vi-VN')} N / ${moment.toFixed(0)} N·m · ${GAS[i]}%/s</td></tr>`)});
+// Chọn tổ hợp tốt nhất bằng cách duyệt toàn bộ 64 cấu hình van.
+function bestThrusterMask(z,ax,ay,aw,effort=.008){let a=Math.atan2(Math.sin(z.a),Math.cos(z.a)),co=Math.cos(a),si=Math.sin(a),best=0,bestScore=Infinity;for(let mask=0;mask<ACTIONS.length;mask++){let fx=0,fy=0,tau=0,n=0;for(let i of ACTIONS[mask]){let[x,y,dx,dy]=jets[i],f=THRUST[i];fx+=f*(co*dx-si*dy);fy+=f*(si*dx+co*dy);tau+=f*(x*dy-y*dx);n++}let score=((fx/mass-ax)/3)**2+((fy/mass-ay)/3)**2+2*((tau/I-aw)/3)**2+effort*n;if(score<bestScore){bestScore=score;best=mask}}return best}
+function auto(){let a=Math.atan2(Math.sin(s.a),Math.cos(s.a)),h=Math.max(0,Math.min(...contactPoints().map(p=>p.y))),vd=-Math.min(2,Math.sqrt(h)*.9),ax=clamp(-.6*s.x-1.8*s.vx,-4,4),ay=9.81+3*(vd-s.vy),aw=-3*a-2*s.w,mask=bestThrusterMask(s,ax,ay,aw);return jets.map((_,i)=>!!(mask&(1<<i)))}
+
+function point(x,y){return{x:s.x+Math.cos(s.a)*x-Math.sin(s.a)*y,y:s.y+Math.sin(s.a)*x+Math.cos(s.a)*y}}
+function contactPoints(){let body=[[-2.2,.35],[-1.8,.5],[-1,.8],[.9,.8],[1.5,.45],[2.2,.3],[2.2,-.4],[-2.2,-.4]].map(p=>point(...p));let wheels=[-1.45,1.45].map(x=>{let p=point(x,-.43);return{x:p.x,y:p.y-.29}});return [...wheels,...body]}
+function constrainInitial(){let min=Math.min(...contactPoints().map(p=>p.y));if(min<.05){s.y+=.05-min;$('height').value=s.y.toFixed(1)} }
+function step(dt){controlClock--;if($('mode').value==='manual')active=[...manual];else if($('mode').value==='free')active.fill(false);else if($('mode').value==='dqn')active=dqnValves();else if(controlClock<=0){active=auto();controlClock=12;}if(s.q<=0)active.fill(false);integrate(s,active,dt);t+=dt;let points=contactPoints(),min=Math.min(...points.map(p=>p.y));if(min<=0){let angle=Math.atan2(Math.sin(s.a),Math.cos(s.a));let safe=Math.abs(s.vy)<1&&Math.abs(s.vx)<.5&&Math.abs(angle)<5*Math.PI/180&&Math.abs(s.w)<.2&&points.slice(2).every(p=>p.y>0),wheels=points.slice(0,2),inZone=wheels.every(p=>p.x>=-3&&p.x<=3),loops=Math.floor(Math.abs(s.a-startAngle)/(2*Math.PI));impact={x:points.reduce((a,p)=>p.y<a.y?p:a).x,time:performance.now(),safe,inZone,loops,elapsed:t};finish(safe?'Đáp an toàn':'Va chạm · chưa đạt',`vᵧ = ${s.vy.toFixed(2)} m/s · vₓ = ${s.vx.toFixed(2)} m/s · góc = ${(angle*180/Math.PI).toFixed(1)}° · ω = ${s.w.toFixed(2)} rad/s · ${loops} vòng lộn · ${t.toFixed(1)} s`);s.y-=min;s.vx=0;s.vy=0;s.w=0}else if(Math.abs(s.x)>FLIGHT.halfWidth||s.y>FLIGHT.height||t>=20)finish('Kết thúc lần thử',s.y>FLIGHT.height?'Xe bay quá cao: trọng tâm vượt 25 m.':Math.abs(s.x)>FLIGHT.halfWidth?'Xe ra khỏi khu vực: trọng tâm vượt biên ngang ±20 m.':'Vượt giới hạn 20 giây.');sync()}
+function finish(title,detail){run=false;ended=true;active.fill(false);$('status').textContent=title;$('result').textContent=title+'. '+detail;if(impact){let timePenalty=Math.floor(Math.max(0,impact.elapsed-5)/5)*4,base=(impact.safe?2:0)+(impact.safe&&impact.inZone?2:0),score=base-timePenalty+impact.loops;$('gradeResult').innerHTML='<b>Điểm mô phỏng tham khảo:</b> an toàn '+(impact.safe?'2/2':'0/2')+' · đúng vùng '+(impact.safe&&impact.inZone?'2/2':'0/2')+' · phạt thời gian '+timePenalty+' điểm · lộn vòng +'+impact.loops+' điểm.<br><b>Tạm tính:</b> '+score+' điểm từ các tiêu chí mô phỏng (chưa tính 2 điểm giải thích RL và 1 điểm Share box chat). Quy tắc thời gian ở đây hiểu là mỗi 5 giây vượt quá mốc 5 giây trừ 4 điểm.'}else{let loops=Math.floor(Math.abs(s.a-startAngle)/(2*Math.PI)),penalty=Math.floor(Math.max(0,t-5)/5)*4;$('gradeResult').innerHTML='<b>Điểm mô phỏng tham khảo:</b> chưa có điểm đáp an toàn/vị trí · phạt thời gian '+penalty+' điểm · lộn vòng +'+loops+' điểm.<br><b>Tạm tính:</b> '+(loops-penalty)+' điểm từ vòng lộn và thời gian; chưa tính 2 điểm giải thích RL và 1 điểm Share box chat.'}}
+function screen(p){return{x:originX+p.x*scale,y:ground-p.y*scale}}function line(x,y,X,Y,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(X,Y);ctx.stroke()}
+// Visual exhaust only: no changes to thrust or rigid-body physics.
+function drawThruster(x,y,dx,dy,i){
+ ctx.save();ctx.translate(x,-y);ctx.rotate(Math.atan2(dy,-dx));
+ const now=performance.now()/1000, on=active[i], L=i<2?2.7:3.7;
+ if(on){
+  // Broken, turbulent vapor puffs instead of a filled light cone.
+  for(let k=0;k<42;k++){
+   const u=(now*((i===2||i===3)?4.6:3.8)+k/42+i*.173)%1;
+   const spread=.03+.42*u,xx=.14+u*L;
+   const yy=Math.sin(k*17.13+i*3.7+now*4)*spread;
+   const rad=.045+.22*u;
+   const mist=ctx.createRadialGradient(xx,yy,0,xx,yy,rad*1.9);
+   const alpha=(.60+.12*Math.sin(k*7))*(1-u)**1.3;
+   mist.addColorStop(0,`rgba(220,242,245,${alpha})`);
+   mist.addColorStop(.45,`rgba(173,219,227,${alpha*.55})`);
+   mist.addColorStop(1,'rgba(173,219,227,0)');
+   ctx.fillStyle=mist;ctx.beginPath();ctx.ellipse(xx,yy,rad*2.1,rad*1.5,Math.sin(k)*.3,0,Math.PI*2);ctx.fill();
+  }
+  // Thin streaks carry motion and break up the vapor silhouette.
+  ctx.lineCap='round';
+  for(let k=0;k<18;k++){
+   const u=(now*5.5+k/18+i*.11)%1,xx=.16+u*L;
+   const yy=Math.sin(k*6.7+i)*(.02+.28*u);
+   ctx.strokeStyle=`rgba(212,245,249,${.8*(1-u)**1.4})`;ctx.lineWidth=.009+.012*(1-u);
+   ctx.beginPath();ctx.moveTo(xx,yy);ctx.quadraticCurveTo(xx+.08,yy+.025*Math.sin(now*12+k),xx+.12+.12*u,yy+.035*Math.sin(k));ctx.stroke();
+  }
+  // Small pressure ripples, moving away from the metal lip.
+  for(let k=0;k<4;k++){
+   const u=(now*1.9+k/4+i*.1)%1;
+   ctx.strokeStyle=`rgba(182,230,240,${.25*(1-u)**2})`;ctx.lineWidth=.012;
+   ctx.beginPath();ctx.ellipse(.18+u*.85,0,.025+.035*u,.065+.055*u,0,-1.35,1.35);ctx.stroke();
+  }
+  const core=ctx.createLinearGradient(.05,0,.65,0);
+  core.addColorStop(0,'rgba(232,255,255,.9)');core.addColorStop(.4,'rgba(188,235,242,.45)');core.addColorStop(1,'rgba(188,235,242,0)');
+  ctx.strokeStyle=core;ctx.lineWidth=.065;ctx.beginPath();ctx.moveTo(.055,0);ctx.lineTo(.65,0);ctx.stroke();
+ }
+ // Recessed metal socket, tapered nozzle and dark elliptical outlet.
+ const metal=ctx.createLinearGradient(0,-.12,0,.12);
+ metal.addColorStop(0,'#cbd8df');metal.addColorStop(.3,'#637e8c');metal.addColorStop(.55,'#273d49');metal.addColorStop(.85,'#a8b9c3');metal.addColorStop(1,'#4a6471');
+ ctx.fillStyle='#233744';ctx.fillRect(-.105,-.12,.10,.24);
+ ctx.fillStyle=metal;ctx.beginPath();ctx.moveTo(-.07,-.065);ctx.lineTo(.09,-.105);ctx.lineTo(.09,.105);ctx.lineTo(-.07,.065);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#b7cbd5';ctx.lineWidth=.018;ctx.beginPath();ctx.ellipse(.09,0,.028,.105,0,0,Math.PI*2);ctx.stroke();
+ ctx.fillStyle=on?'#bde5e9':'#081820';ctx.beginPath();ctx.ellipse(.09,0,.015,.077,0,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+ if(on&&$('forces').checked){ctx.strokeStyle='#ffd16c';ctx.lineWidth=.035;ctx.beginPath();ctx.moveTo(x,-y);ctx.lineTo(x+dx*.85,-y-dy*.85);ctx.stroke();let ax=x+dx*.85,ay=-y-dy*.85;ctx.fillStyle='#ffd16c';ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax-dx*.17+dy*.09,ay+dy*.17+dx*.09);ctx.lineTo(ax-dx*.17-dy*.09,ay+dy*.17-dx*.09);ctx.closePath();ctx.fill()}
+}
+function draw(){let r=c.getBoundingClientRect(),d=devicePixelRatio||1;if(c.width!==Math.round(r.width*d)||c.height!==Math.round(r.height*d)){c.width=Math.round(r.width*d);c.height=Math.round(r.height*d)}W=r.width;H=r.height;ctx.setTransform(d,0,0,d,0,0);scale=Math.min(W/(W<650?30:46),(H-80)/28);let viewHalf=W/(2*scale),cameraLimit=Math.max(0,FLIGHT.halfWidth+3-viewHalf);originX=W/2-clamp(s.x,-cameraLimit,cameraLimit)*scale;ground=H-42;ctx.fillStyle='#102331';ctx.fillRect(0,0,W,H);ctx.font='11px system-ui';for(let h=0;h<=24;h+=2){let y=ground-h*scale;line(0,y,W,y,'#203a49');ctx.fillStyle='#6f919f';ctx.fillText(h+' m',12,y-6)}for(let x=-22;x<=22;x+=2)line(originX+x*scale,0,originX+x*scale,ground,'#19333f');ctx.fillStyle='#1c3942';ctx.fillRect(0,ground,W,42);line(0,ground,W,ground,'#73b5ae',2);line(originX-3*scale,ground,originX+3*scale,ground,'#45dfc2',4);ctx.fillStyle='#8ab9bc';ctx.fillText('VÙNG ĐÁP / x = 0',originX-50,ground+25);if(impact){let age=(performance.now()-impact.time)/1000;if(age<1){let ip=screen({x:impact.x,y:0});ctx.save();ctx.globalAlpha=1-age;ctx.strokeStyle=impact.safe?'#5dffce':'#ff976b';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(ip.x,ground,15+age*110,4+age*18,0,Math.PI,2*Math.PI);ctx.stroke();ctx.restore()}}let pos=screen(s);ctx.save();ctx.translate(pos.x,pos.y);ctx.rotate(-s.a);ctx.scale(scale,scale);ctx.fillStyle='#d7e1e5';ctx.strokeStyle='#f3fbff';ctx.lineWidth=.035;ctx.beginPath();ctx.moveTo(-2.2,-.35);ctx.lineTo(-1.8,-.5);ctx.lineTo(-1,-.8);ctx.lineTo(.9,-.8);ctx.lineTo(1.5,-.45);ctx.lineTo(2.2,-.3);ctx.lineTo(2.2,.4);ctx.lineTo(-2.2,.4);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#284959';ctx.beginPath();ctx.moveTo(-.9,-.72);ctx.lineTo(.8,-.72);ctx.lineTo(1.25,-.42);ctx.lineTo(-1.4,-.42);ctx.closePath();ctx.fill();for(let x of [-1.45,1.45]){ctx.fillStyle='#07141d';ctx.beginPath();ctx.arc(x,.43,.29,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8298a2';ctx.beginPath();ctx.arc(x,.43,.13,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#f46054';ctx.fillRect(-2.22,-.1,.1,.16);ctx.fillStyle='#fff7cf';ctx.fillRect(2.12,-.1,.1,.16);jets.forEach(([x,y,dx,dy],i)=>drawThruster(x,y,dx,dy,i));ctx.fillStyle='#068f87';ctx.beginPath();ctx.arc(0,0,.08,0,Math.PI*2);ctx.fill();ctx.restore();if(!run){let hp=screen(point(0,1.8));line(pos.x,pos.y,hp.x,hp.y,'#74d9ce88',1.5);ctx.fillStyle='#123b45';ctx.strokeStyle='#72e4d4';ctx.lineWidth=2;ctx.beginPath();ctx.arc(hp.x,hp.y,13,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#b1fff1';ctx.font='bold 17px system-ui';ctx.fillText('↻',hp.x-7,hp.y+6);ctx.font='11px system-ui';ctx.fillText('Kéo để xoay',hp.x+18,hp.y+4)}if($('forces').checked){ctx.font='bold 11px system-ui';jets.forEach(([x,y],i)=>{let p=screen(point(x,y)),label=screen(point(x+(i>=2?(x<0?-.55:.55):0),y+(i<2?-.65:(y>0?.6:-.6))));ctx.fillStyle=active[i]?'#ffd16c':'#bacdd5';ctx.fillText('V'+(i+1),label.x-8,label.y);line(p.x,p.y,label.x,label.y-9,'#55707d')})}ctx.fillStyle='#7795a4';ctx.font='12px system-ui';ctx.fillText('KÉO THÂN: DI CHUYỂN · KÉO ↻: XOAY 360°',20,25);$('mh').textContent=s.y.toFixed(2)+' m';$('mv').textContent=s.vy.toFixed(2)+' m/s';$('ma').textContent=(Math.atan2(Math.sin(s.a),Math.cos(s.a))*180/Math.PI).toFixed(1)+'°';$('mq').textContent=s.q.toFixed(0)+'%';$('ml').textContent=Math.floor(Math.abs(s.a-startAngle)/(2*Math.PI))}
+function start(){if(training)return;if(t===0||ended)manualRuns++;if(ended)reset();if(t===0)startAngle=s.a;constrainInitial();run=true;acc=0;$('status').textContent='Đang mô phỏng';$('pause').textContent='Tạm dừng';sync()}
+$('run').onclick=start;
+$('pause').onclick=()=>{if(ended||t===0&&!run)return;run=!run;acc=0;$('pause').textContent=run?'Tạm dừng':'Tiếp tục';$('status').textContent=run?'Đang mô phỏng':'Tạm dừng · van không tiêu thụ khí';sync()};
+$('reset').onclick=reset;
+['angle','height'].forEach(id=>$(id).oninput=()=>{reset();constrainInitial();sync()});
+$('mode').onchange=()=>{manual.fill(false);active.fill(false);controlClock=0;inferenceClock=0;sync()};
+$('off').onclick=()=>{manual.fill(false);active.fill(false);$('mode').value='manual';sync()};
+$('lift').onclick=()=>{if(ended)return;$('mode').value='manual';manual=jets.map((_,i)=>i<2);active=[...manual];sync()};
+function pointerWorld(e){let r=c.getBoundingClientRect();return{x:(e.clientX-r.left-originX)/scale,y:(ground-e.clientY+r.top)/scale}}
+c.onpointerdown=e=>{if(training)return;let p=pointerWorld(e),dx=p.x-s.x,dy=p.y-s.y,lx=Math.cos(s.a)*dx+Math.sin(s.a)*dy,ly=-Math.sin(s.a)*dx+Math.cos(s.a)*dy;let hp=screen(point(0,1.8)),r=c.getBoundingClientRect();let hitHandle=!run&&Math.hypot(e.clientX-r.left-hp.x,e.clientY-r.top-hp.y)<22;if(hitHandle||Math.abs(lx)<2.6&&Math.abs(ly)<1.1){drag=true;dragMode=hitHandle||e.shiftKey?'rotate':'move';rotationOffset=s.a-Math.atan2(dy,dx);run=false;ended=false;acc=0;dragOffset={x:dx,y:dy};c.classList.add('dragging');c.setPointerCapture(e.pointerId);$('status').textContent=dragMode==='rotate'?'Đang xoay · cho phép dựng đứng / lật ngược':'Đang kéo · thả chuột để đặt xe'}};
+c.onpointermove=e=>{if(!drag)return;let p=pointerWorld(e);if(dragMode==='rotate'){let angle=Math.atan2(p.y-s.y,p.x-s.x)+rotationOffset;s.a=Math.atan2(Math.sin(angle),Math.cos(angle));$('angle').value=Math.round(s.a*180/Math.PI)}else{startX=Math.max(-18,Math.min(18,p.x-dragOffset.x));s.x=startX;s.y=Math.max(1.5,Math.min(23,p.y-dragOffset.y))}s.vx=s.vy=s.w=0;s.time=0;inferenceClock=0;constrainInitial();$('height').value=s.y.toFixed(1);t=0;impact=null;active.fill(false);manual.fill(false);sync()};
+function endDrag(){if(!drag)return;drag=false;c.classList.remove('dragging');$('status').textContent='Đã đặt xe · nhấn Thả xe';sync()}
+c.onpointerup=endDrag;c.onpointercancel=endDrag;c.onlostpointercapture=endDrag;
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&run){run=false;acc=0;$('pause').textContent='Tiếp tục';$('status').textContent='Tạm dừng khi rời trang'}});
+reset();
+// Standalone DQN, no remote dependencies or training service.
+for(let [host,id,box,label] of [['networkHost','network','0 0 900 360','Mạng neural DQN và kích hoạt các nút'],['chartHost','learningChart','0 0 440 170','Lịch sử reward và loss']]){let svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.id=id;svg.setAttribute('viewBox',box);svg.setAttribute('role','img');svg.setAttribute('aria-label',label);$(host).append(svg)}
+// Mỗi bit điều khiển một van độc lập: bit 0 = V1, …, bit 5 = V6.
+const ACTIONS=Array.from({length:1<<jets.length},(_,mask)=>Array.from({length:jets.length},(_,i)=>i).filter(i=>mask&(1<<i)));
+function valveCode(mask){return jets.map((_,i)=>(mask>>i)&1).join(' ')}
+const clamp=(x,l,h)=>Math.max(l,Math.min(h,x));
+function obs(z){return[z.x/10,z.y/15,z.vx/10,z.vy/10,Math.sin(z.a),Math.cos(z.a),z.w/5,z.q/100,(z.time||0)/20].map(x=>clamp(x,-5,5))}
+class QNetwork{
+ constructor(sizes,activation){this.sizes=[...sizes];this.activation=activation;this.layers=sizes.slice(1).map((n,l)=>({w:Array.from({length:n},()=>Array.from({length:sizes[l]},()=>{let u=Math.max(1e-9,random());return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*random())*Math.sqrt(2/sizes[l])})),b:Array(n).fill(0)}))}
+ forward(x){let acts=[[...x]],zs=[];for(let l=0;l<this.layers.length;l++){let L=this.layers[l],prev=acts[l],z=Array(L.b.length),out=Array(L.b.length);for(let j=0;j<L.b.length;j++){let sum=L.b[j],row=L.w[j];for(let i=0;i<prev.length;i++)sum+=row[i]*prev[i];z[j]=sum;out[j]=l===this.layers.length-1?sum:this.activation==='relu'?Math.max(0,sum):Math.tanh(sum)}zs.push(z);acts.push(out)}return{q:acts.at(-1),acts,zs}}
+
+ clone(){let copy=Object.create(QNetwork.prototype);copy.sizes=[...this.sizes];copy.activation=this.activation;copy.layers=JSON.parse(JSON.stringify(this.layers));return copy}
+ train(batch,target,gamma,lr,lossKind="mse"){let gradients=this.layers.map(L=>({w:L.w.map(r=>r.map(()=>0)),b:L.b.map(()=>0)})),loss=0,detail;
+ for(let tr of batch){let pass=this.forward(tr.s),next=target.forward(tr.next).q,boot=tr.done?0:($('algorithm').value==='double'?next[this.forward(tr.next).q.reduce((best,v,i,arr)=>v>arr[best]?i:best,0)]:Math.max(...next)),y=tr.r+(tr.done?0:gamma*boot),q=pass.q[tr.a],err=q-y;loss+=lossKind==="mse"?err*err:(Math.abs(err)<=1?.5*err*err:Math.abs(err)-.5);let derivative=lossKind==="mse"?2*err:clamp(err,-1,1);let delta=pass.q.map((_,i)=>i===tr.a?derivative:0);if(tr.demo){let rival=pass.q.reduce((best,v,i,arr)=>(v+(i===tr.a?0:.2))>(arr[best]+(best===tr.a?0:.2))?i:best,0),margin=pass.q[rival]+(rival===tr.a?0:.2)-q;if(margin>0){loss+=5*margin;delta[rival]+=5;delta[tr.a]-=5}}
+ for(let l=this.layers.length-1;l>=0;l--){let L=this.layers[l],prev=pass.acts[l],back=prev.map(()=>0);for(let j=0;j<delta.length;j++){gradients[l].b[j]+=delta[j];for(let i=0;i<prev.length;i++){gradients[l].w[j][i]+=delta[j]*prev[i];back[i]+=L.w[j][i]*delta[j]}}if(l>0)delta=back.map((v,i)=>v*(this.activation==='relu'?(pass.zs[l-1][i]>0?1:0):(1-pass.acts[l][i]**2)))}detail={q,y,r:tr.r,boot,done:tr.done,a:tr.a,td:y-q};}
+ // RMSProp (uncentered, decay 0.95, stabilizer 0.01), educational implementation.
+ if(!this.rms)this.rms=this.layers.map(L=>({w:L.w.map(r=>r.map(()=>0)),b:L.b.map(()=>0)}));
+ for(let l=0;l<this.layers.length;l++){let L=this.layers[l],G=gradients[l],R=this.rms[l];L.w.forEach((row,j)=>{let g=clamp(G.b[j]/batch.length,-1,1);R.b[j]=.95*R.b[j]+.05*g*g;L.b[j]-=lr*g/Math.sqrt(R.b[j]+.01);row.forEach((_,i)=>{let g=clamp(G.w[j][i]/batch.length,-1,1);R.w[j][i]=.95*R.w[j][i]+.05*g*g;row[i]-=lr*g/Math.sqrt(R.w[j][i]+.01)})})}return{loss:loss/batch.length,detail}}
+}
+let net,targetNet,trainEnv=null,trainSteps=0,completed=0,updates=0,targetCopies=0,replay=[],replayPos=0,returns=[],losses=[],outcomes=[],episodeReturn=0,lastUpdate=null,lastPass=null,lastAction=0,lastExplore=false,goal=0,manualRuns=0,displayAt=0,inferenceAction=0;
+function integrate(z,on,dt){let fx=0,fy=-mass*9.81,tau=0;on.forEach((v,i)=>{if(!v||z.q<=0)return;let[x,y,dx,dy]=jets[i],f=THRUST[i];fx+=f*(Math.cos(z.a)*dx-Math.sin(z.a)*dy);fy+=f*(Math.sin(z.a)*dx+Math.cos(z.a)*dy);tau+=f*(x*dy-y*dx);z.q=Math.max(0,z.q-dt*GAS[i])});z.vx+=fx/mass*dt;z.vy+=fy/mass*dt;z.w+=tau/I*dt;z.x+=z.vx*dt;z.y+=z.vy*dt;z.a+=z.w*dt;z.time=(z.time||0)+dt}
+function contacts(z){let pt=(x,y)=>({x:z.x+Math.cos(z.a)*x-Math.sin(z.a)*y,y:z.y+Math.sin(z.a)*x+Math.cos(z.a)*y});return [...[-1.45,1.45].map(x=>{let p=pt(x,-.43);return{x:p.x,y:p.y-.29}}),...[[-2.2,.35],[-1.8,.5],[-1,.8],[.9,.8],[1.5,.45],[2.2,.3],[2.2,-.4],[-2.2,-.4]].map(p=>pt(...p))]}
+const REWARD_DEFAULT={success:200,softness:2,angle:10,fuel:.2,time:1,slowAfter:5,slowPenalty:4,spin:1,zone:30,boundary:250,timeout:500};
+const REWARD_LABEL={success:'Thưởng đáp an toàn (phạt va chạm = −½)',softness:'Đáp nhẹ: hệ số phạt tốc độ chạm đất²',angle:'Phạt góc nghiêng khi chạm đất',fuel:'Phạt mỗi % khí tiêu thụ',time:'Phạt thời gian cơ bản / giây',slowAfter:'Mốc bắt đầu phạt thời gian (giây)',slowPenalty:'Phạt bổ sung mỗi giây sau mốc',spin:'Thưởng mỗi vòng lộn hoàn tất',zone:'Thưởng thêm đáp an toàn trong vùng xanh',boundary:'Phạt vượt độ cao / ra khỏi khu vực',timeout:'Phạt hết 20 giây chưa đáp'};
+let clipReward=false;let rewardCfg={...REWARD_DEFAULT},lastReward=null,evaluating=false;
+$('rewardFields').innerHTML=Object.entries(REWARD_DEFAULT).map(([k,v])=>'<label>'+REWARD_LABEL[k]+'<input id="rw_'+k+'" type="number" min="0" max="1000" step="0.01" value="'+v+'"></label>').join('');
+// Auxiliary potential has no tilt term. Terminal potential is exactly zero.
+function potential(z){return -10*Math.hypot(z.x,Math.max(0,z.y-.72))-4*Math.hypot(z.vx,z.vy)}
+function newTrainEnv(){let max=+$('difficulty').value,easy=$('curriculum').checked&&completed<300,mid=$('curriculum').checked&&completed>=300&&completed<800;return{z:{x:(random()-.5)*(easy?.4:mid?1:4),y:easy?1.2+random()*1.8:mid?2+random()*3:4+random()*5,vx:0,vy:0,a:(random()*2-1)*(easy?Math.min(max,3):mid?Math.min(max,8):max)*Math.PI/180,w:0,q:100},time:0}}
+function envTransition(env,a){let z=env.z;if(!Number.isFinite(env.startAngle))env.startAngle=z.a;let oldPhi=potential(z),gas=z.q,on=jets.map((_,i)=>ACTIONS[a].includes(i)),done=false,safe=false,collision=false,exitReason='',elapsed=env.time;for(let k=0;k<12;k++){integrate(z,on,1/120);env.time+=1/120;let ps=contacts(z),low=Math.min(...ps.map(p=>p.y));if(low<=0){collision=true;let angle=Math.atan2(Math.sin(z.a),Math.cos(z.a));safe=Math.abs(z.vy)<1&&Math.abs(z.vx)<.5&&Math.abs(angle)<5*Math.PI/180&&Math.abs(z.w)<.2&&ps.slice(2).every(p=>p.y>0);z.y-=low;done=true;break}if(Math.abs(z.x)>FLIGHT.halfWidth||z.y>FLIGHT.height||env.time>=20){exitReason=z.y>FLIGHT.height?'too_high':Math.abs(z.x)>FLIGHT.halfWidth?'outside':'timeout';done=true;break}}
+ // Safety, impact, landing tilt, gas, time, landing zone, and out-of-bounds cost. Contact velocity is sampled before any collision response.
+ let outside=exitReason==='too_high'||exitReason==='outside';
+ let safety=done&&!outside&&exitReason!=='timeout'?(safe?rewardCfg.success:-rewardCfg.success/2):0;
+ let boundaryCost=outside?rewardCfg.boundary:exitReason==='timeout'?rewardCfg.timeout:0;
+ let impactSpeed2=collision?z.vx*z.vx+z.vy*z.vy:0;
+ let landingCost=collision?rewardCfg.softness*impactSpeed2:0;
+ let slowDuration=Math.max(0,env.time-Math.max(elapsed,rewardCfg.slowAfter)),slowPenalty=rewardCfg.slowPenalty*slowDuration,timeCost=rewardCfg.time*(env.time-elapsed)+slowPenalty,fuelCost=rewardCfg.fuel*(gas-z.q),loops=done?Math.floor(Math.abs(z.a-env.startAngle)/(2*Math.PI)):0,spinBonus=loops*rewardCfg.spin;
+ let wheels=contacts(z).slice(0,2);
+ let inZone=wheels.every(p=>p.x>=-3&&p.x<=3);
+ let zoneBonus=done&&safe&&inZone?rewardCfg.zone:0;
+ let angleCost=collision?rewardCfg.angle*(1-Math.cos(z.a)):0;
+ let breakdown={safety,boundaryCost,exitReason,landingCost,angleCost,zoneBonus,inZone,impactSpeed:Math.sqrt(impactSpeed2),timeCost,slowPenalty,fuelCost,loops,spinBonus,total:safety+zoneBonus+spinBonus-boundaryCost-landingCost-angleCost-timeCost-fuelCost};
+ let shaping=$('shaping').checked?(+$('gamma').value*(done?0:potential(z))-oldPhi):0;breakdown.shaping=shaping;return{next:obs(z),r:breakdown.total,shaping,done,safe,on,breakdown,collision,exitReason}}
+function epsilon(){return Math.max(.05,(warmStart?.1:1)-trainSteps/100000*(warmStart?.05:.95))}
+function setLearnStatus(v){$('learnStatus').textContent=v}
+function number(id,min,max){let v=+$(id).value;if(!Number.isFinite(v)||v<min||v>max)throw Error(id+': giá trị phải nằm trong '+min+'…'+max);return v}
+function buildNetwork(){try{let seed=number('seed',0,4294967295);if(!Number.isInteger(seed))throw Error('Seed phải là số nguyên.');rngState=seed;let hs=$('layers').value.split(',').map(x=>Number(x.trim()));if(hs.length<1||hs.length>3||hs.some(x=>!Number.isInteger(x)||x<4||x>64))throw Error('Chọn 1–3 lớp ẩn, mỗi lớp 4–64 nút, ví dụ 64,64.');number('lr',.00001,.01);number('gamma',0,.999);number('targetEvery',10,5000);training=false;demoReplay=[];demoCount=0;netOrigin='Khởi tạo ngẫu nhiên';warmStart=false;run=false;clipReward=$('clipReward').checked;trainEnv=null;net=new QNetwork([9,...hs,ACTIONS.length],$('activation').value);targetNet=net.clone();trainSteps=completed=updates=targetCopies=replayPos=0;replay=[];returns=[];losses=[];outcomes=[];lastUpdate=null;lastReward=null;episodeReturn=0;lastPass=net.forward(obs(s));lastAction=0;goal=0;setLearnStatus('Đã khởi tạo '+net.sizes.join(' → ')+'. Trọng số ngẫu nhiên; thống kê học được đặt lại.');renderLearning()}catch(e){setLearnStatus(e.message)}}
+function updateNetwork(){let B=+$('batch').value;if(replay.length<Math.max(512,B)){setLearnStatus('Chưa đủ mẫu: '+replay.length+'/'+Math.max(512,B)+'. Hãy chạy thêm bước mô phỏng.');return false}let batch=Array.from({length:B},(_,i)=>demoReplay.length&&i<Math.ceil(B/4)?demoReplay[Math.floor(random()*demoReplay.length)]:replay[Math.floor(random()*replay.length)]);let result=net.train(batch,targetNet,+$('gamma').value,+$('lr').value,$('lossKind').value);updates++;losses.push(result.loss);if(losses.length>200)losses.shift();lastUpdate=result.detail;let interval=+$('targetEvery').value;if(updates%interval===0){targetNet=net.clone();targetCopies++}return true}
+function learnStep(){if(!trainEnv){trainEnv=newTrainEnv();startAngle=trainEnv.z.a;episodeReturn=0}let state=obs(trainEnv.z);lastPass=net.forward(state);lastExplore=random()<epsilon();lastAction=lastExplore?Math.floor(random()*ACTIONS.length):lastPass.q.indexOf(Math.max(...lastPass.q));let tr=envTransition(trainEnv,lastAction),record={s:state,a:lastAction,r:clipReward?Math.sign(tr.r):.01*(tr.r+tr.shaping),next:tr.next,done:tr.done};if(replay.length<50000)replay.push(record);else{replay[replayPos]=record;replayPos=(replayPos+1)%50000}lastReward=tr.breakdown;trainSteps++;episodeReturn+=tr.r;if(trainSteps%4===0&&replay.length>=Math.max(512,+$('batch').value))updateNetwork();s={...trainEnv.z};active=tr.on;ended=tr.done;t=trainEnv.time;if(tr.done){completed++;returns.push(episodeReturn);outcomes.push(tr.safe?1:0);if(returns.length>200)returns.shift();if(outcomes.length>50)outcomes.shift();$('result').textContent='DQN · lượt '+completed+': '+(tr.safe?'đáp an toàn':tr.exitReason==='too_high'?'bay quá cao':tr.exitReason==='outside'?'ra khỏi biên ngang':tr.exitReason==='timeout'?'hết thời gian':'chưa đạt')+' · reward '+episodeReturn.toFixed(1);active.fill(false);trainEnv=null}if(training&&completed>=goal){training=false;setLearnStatus('Hoàn tất '+completed+' lượt. Có thể tiếp tục học hoặc thử mạng.')} }
+function stopLearning(){demoCancel=true;training=false;run=false;active.fill(false);setLearnStatus('Đã dừng học. Giữ lại trọng số, replay buffer và lượt đang chạy.');renderLearning()}
+function trainTick(ms){if(training){let until=performance.now()+10,count=0;while(training&&performance.now()<until&&count++<40)learnStep();$('status').textContent=training?'DQN đang học · lượt '+(completed+1):'Đã hoàn tất huấn luyện';if(ms-displayAt>180){displayAt=ms;sync();renderLearning()}}}
+function dqnValves(){if(!net)return jets.map(()=>false);if(inferenceClock<=0){lastPass=net.forward(obs(s));inferenceAction=lastPass.q.indexOf(Math.max(...lastPass.q));lastAction=inferenceAction;lastExplore=false;inferenceClock=12}inferenceClock--;return jets.map((_,i)=>ACTIONS[inferenceAction].includes(i))}
+function renderLearning(){if(!net)return;if(lastReward){let b=lastReward;$('rewardBreakdown').textContent='Reward = an toàn '+b.safety.toFixed(3)+' + đúng vùng '+b.zoneBonus.toFixed(3)+' − vượt biên/hết giờ '+b.boundaryCost.toFixed(3)+' − va chạm '+b.landingCost.toFixed(3)+' − góc '+b.angleCost.toFixed(4)+' − khí '+b.fuelCost.toFixed(4)+' − thời gian '+b.timeCost.toFixed(4)+' (phạt sau mốc '+(b.slowPenalty||0).toFixed(3)+') + vòng lộn '+(b.spinBonus||0).toFixed(3)+' ('+(b.loops||0)+' vòng) = '+b.total.toFixed(4)+(b.impactSpeed?' · tốc độ chạm đất '+b.impactSpeed.toFixed(2)+' m/s':'')+'; reward dùng học = '+(clipReward?Math.sign(b.total):.01*(b.total+(b.shaping||0))).toFixed(4)+' · shaping '+(b.shaping||0).toFixed(3)}$('rewardFields').querySelectorAll('input').forEach(el=>el.disabled=training||demoBusy||evaluating);['applyReward','defaultReward','evaluateNet','buildNet','trainNet','oneStep','oneUpdate','testNet'].forEach(id=>$(id).disabled=evaluating||demoBusy||(training&&['applyReward','defaultReward','evaluateNet','oneStep','oneUpdate'].includes(id)));let vals=[['Lượt hoàn tất',completed],['Lượt thử / tạo ví dụ',manualRuns+' / '+demoCount],['Bước môi trường',trainSteps],['Cập nhật gradient',updates],['Replay / ví dụ',replay.length+' / '+demoReplay.length],['ε khám phá',epsilon().toFixed(3)],['Target đã sao chép',targetCopies],['Thành công train (theo cấp)',outcomes.length?(100*outcomes.reduce((a,b)=>a+b,0)/outcomes.length).toFixed(0)+'% / '+outcomes.length+' lượt':'Chưa có']];$('learnMetrics').innerHTML=vals.map(([k,v])=>'<div><small>'+k+'</small><strong>'+v+'</strong></div>').join('');['run','pause','reset','angle','height','mode','off','lift','layers','activation','lossKind','lr','gamma','batch','targetEvery','episodes','difficulty','clipReward','algorithm','shaping','curriculum','saveHTML','demoLearn','seed','applyPreset'].forEach(id=>$(id).disabled=training||demoBusy||evaluating);$('pause').disabled=training||demoBusy||evaluating||ended||(t===0&&!run);$('network').innerHTML=networkSVG();$('qValues').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+jets.map((_,i)=>'<div style="padding:14px;border-radius:9px;text-align:center;background:'+((lastAction&(1<<i))?'#d8f5e9':'#edf1f4')+'"><b>V'+(i+1)+'</b><br>'+((lastAction&(1<<i))?'● MỞ':'○ ĐÓNG')+'</div>').join('')+'</div><p>Tổ hợp [V1 … V6]: <b>'+valveCode(lastAction)+'</b><br>Q tổ hợp được chọn: <b>'+((lastPass?.q||[])[lastAction]||0).toFixed(4)+'</b><br>Quyết định: '+(lastExplore?'khám phá ngẫu nhiên ε':'Q cao nhất trong 64 tổ hợp')+'</p>';
+
+ if(lastUpdate){let u=lastUpdate;$('updateDetail').textContent='Mẫu tổ hợp ['+valveCode(u.a)+']: r = '+u.r.toFixed(4)+'; terminal = '+u.done+'; Q_target(s′, a*) = '+u.boot.toFixed(4)+'. y = r + γ(1−done)Q_target(s′,a*) = '+u.y.toFixed(4)+'. a* chọn bằng '+($('algorithm').value==='double'?'online':'target')+'; đánh giá bằng target. Q_online trước cập nhật = '+u.q.toFixed(4)+'. TD error (y−Q) = '+u.td.toFixed(4)+'. Loss batch = '+losses.at(-1).toFixed(5)+'.'}$('learningChart').innerHTML=plotSVG();$('network').querySelectorAll('[data-layer]').forEach(el=>el.onclick=()=>{let l=+el.dataset.layer,j=+el.dataset.node,v=lastPass?.acts[l]?.[j]??0,L=net.layers[l-1];$('neuronInfo').textContent='Lớp '+l+' · nút '+j+' · activation '+v.toFixed(5)+(L?' · bias '+L.b[j].toFixed(5)+' · '+L.w[j].length+' trọng số vào: '+L.w[j].slice(0,8).map(v=>v.toFixed(3)).join(', ')+(L.w[j].length>8?'…':''):' · đầu vào đã chuẩn hóa')});}
+function networkSVG(){let acts=lastPass?.acts||net.forward(obs(s)).acts,n=net.sizes.length,pts=net.sizes.map((size,l)=>Array.from({length:Math.min(12,size)},(_,j)=>({x:60+l*780/(n-1),y:62+j*245/Math.max(1,Math.min(12,size)-1)}))),out='';for(let l=1;l<n;l++)pts[l].forEach((p,j)=>pts[l-1].forEach((q,i)=>{let w=net.layers[l-1].w[j][i];out+='<line x1="'+q.x+'" y1="'+q.y+'" x2="'+p.x+'" y2="'+p.y+'" stroke="'+(w>=0?'#41bcae':'#e79b57')+'" stroke-opacity="'+clamp(Math.abs(w)*.5,.04,.5)+'" stroke-width="1"/>'}));pts.forEach((P,l)=>{out+='<text x="'+P[0].x+'" y="22" text-anchor="middle" fill="#bacdd5" font-size="13">'+(l===0?'Trạng thái':l===n-1?'Q(s,a)':'Ẩn '+l)+' · '+net.sizes[l]+'</text>';P.forEach((p,j)=>{let v=acts[l]?.[j]||0;out+='<g data-layer="'+l+'" data-node="'+j+'" tabindex="0" role="button" aria-label="Lớp '+l+' nút '+j+'" style="cursor:pointer"><circle cx="'+p.x+'" cy="'+p.y+'" r="9" fill="'+(v>=0?'#138c83':'#a36b39')+'" stroke="'+(l===n-1&&j===lastAction?'#fff':'#87acae')+'" stroke-width="'+(l===n-1&&j===lastAction?3:1)+'"/><title>Nút '+j+' = '+v.toFixed(4)+'</title></g>'})});return out}
+function plotSVG(){let out='<rect width="440" height="170" fill="#f2f6f7"/>';[returns,losses].forEach((arr,k)=>{let y=k*80;if(!arr.length)return;let lo=Math.min(...arr),hi=Math.max(...arr),span=hi-lo||1,points=arr.map((v,i)=>(8+i*424/Math.max(1,arr.length-1))+','+(y+68-(v-lo)/span*48)).join(' ');out+='<text x="8" y="'+(y+13)+'" font-size="10" fill="#506774">'+(k?'Loss':'Reward')+' '+lo.toFixed(2)+' … '+hi.toFixed(2)+'</text><polyline points="'+points+'" fill="none" stroke="'+(k?'#df9850':'#0b9a89')+'" stroke-width="2"/>'});return out}
+$('buildNet').onclick=buildNetwork;
+$('trainNet').onclick=()=>{try{number('lr',.00001,.01);number('gamma',0,.999);number('targetEvery',10,5000);let count=number('episodes',1,10000);if(!net)buildNetwork();run=false;training=true;goal=completed+Math.floor(count);setLearnStatus('Huấn luyện DQN thật · mục tiêu '+goal+' lượt hoàn tất. Các thay đổi kiến trúc cần bấm Khởi tạo mạng mới.')}catch(e){setLearnStatus(e.message)}};
+$('pauseNet').onclick=stopLearning;
+$('oneStep').onclick=()=>{if(training){setLearnStatus('Dừng học trước khi chạy từng bước.');return}run=false;learnStep();sync();renderLearning();setLearnStatus('Đã chạy 1 bước quyết định (tối đa 0,1 giây vật lý), lưu vào replay.')};
+$('oneUpdate').onclick=()=>{try{number('lr',.00001,.01);number('gamma',0,.999);number('targetEvery',10,5000)}catch(e){setLearnStatus(e.message);return}if(training){setLearnStatus('Dừng học trước khi cập nhật từng lần.');return}updateNetwork();renderLearning()};
+$('testNet').onclick=()=>{stopLearning();$('mode').value='dqn';reset();inferenceClock=0;start();setLearnStatus('Thử DQN: ε = 0, chọn argmax Q. Lượt này không cập nhật trọng số.');};
+$('defaultReward').onclick=()=>{Object.entries(REWARD_DEFAULT).forEach(([k,v])=>$('rw_'+k).value=v);setLearnStatus('Đã điền hệ số đề xuất. Bấm Áp dụng thưởng & học lại để có hiệu lực.')};
+$('applyReward').onclick=()=>{try{let config={};for(let k in REWARD_DEFAULT)config[k]=number('rw_'+k,0,1000);rewardCfg=config;buildNetwork();$('evalResult').textContent='Đã đổi reward và khởi tạo lại mạng/replay. Chưa kiểm tra độc lập.';setLearnStatus('Đã áp dụng reward và đặt lại mạng/replay. Khuyến nghị kiểm tra độc lập sau mỗi đợt học.')}catch(e){setLearnStatus(e.message)}};
+$('evaluateNet').onclick=async()=>{if(training||evaluating)return;evaluating=true;run=false;renderLearning();let reasons={landed:0,crash:0,timeout:0,outside:0,too_high:0},wins=0,sum=0,impactV=0,collisions=0,steps=0,maxAngle=+$('difficulty').value;let evalSeed=20000;const evalRandom=()=>{evalSeed=(Math.imul(evalSeed,1664525)+1013904223)>>>0;return evalSeed/4294967296};try{for(let i=0;i<100;i++){let env={z:{x:evalRandom()*4-2,y:4+evalRandom()*5,vx:0,vy:0,a:(evalRandom()*2-1)*maxAngle*Math.PI/180,w:0,q:100},time:0},ret=0,tr;do{let q=net.forward(obs(env.z)).q,a=q.indexOf(Math.max(...q));tr=envTransition(env,a);ret+=tr.r;if(++steps%30===0)await new Promise(resolve=>setTimeout(resolve,0))}while(!tr.done);reasons[tr.safe?'landed':tr.exitReason||'crash']++;wins+=+tr.safe;sum+=ret;if(tr.collision){impactV+=Math.abs(env.z.vy);collisions++}$('evalResult').textContent='Đang kiểm tra '+(i+1)+'/100…';await new Promise(resolve=>setTimeout(resolve,0))}$('evalResult').textContent='Kiểm tra độc lập ε=0: '+wins+'/100 đáp an toàn ('+wins+'%). Reward TB '+(sum/100).toFixed(2)+'; |vy| TB tại va chạm '+(collisions?(impactV/collisions).toFixed(2):'không có')+' m/s. Cùng 100 trạng thái cố định cho góc ±'+maxAngle+'°. Va chạm '+reasons.crash+' · hết giờ '+reasons.timeout+' · vượt biên '+(reasons.outside+reasons.too_high)+'. Không học từ các lượt này.'}catch(e){$('evalResult').textContent='Lỗi kiểm tra: '+e.message}finally{evaluating=false;renderLearning()}};
+buildNetwork();
+
+
+function expertAction(z){let a=Math.atan2(Math.sin(z.a),Math.cos(z.a)),h=Math.max(0,Math.min(...contacts(z).map(p=>p.y))),vd=-Math.min(2.5,.4+Math.sqrt(h)*1.1),ax=clamp(-.8*z.x-1.8*z.vx,-6,6),ay=9.81+3.5*(vd-z.vy),aw=-30*a-6*z.w;return bestThrusterMask(z,ax,ay,aw,.008)}
+
+async function validatePolicy(count=20,seed=10000){let value=seed>>>0,rand=()=>{value=(Math.imul(value,1664525)+1013904223)>>>0;return value/4294967296},wins=0,total=0,steps=0;for(let i=0;i<count;i++){let env={z:{x:rand()*4-2,y:4+rand()*5,vx:0,vy:0,a:(rand()*2-1)*15*Math.PI/180,w:0,q:100,time:0},time:0},tr;do{let qs=net.forward(obs(env.z)).q,a=qs.indexOf(Math.max(...qs));tr=envTransition(env,a);total+=tr.r;if(++steps%100===0)await new Promise(r=>setTimeout(r,0))}while(!tr.done);wins+=+tr.safe}return{wins,count,reward:total/count}}
+$('applyPreset').onclick=()=>{if(training||demoBusy||evaluating)return;for(let[id,val]of Object.entries({seed:42,layers:'64,64',activation:'relu',lossKind:'huber',lr:.0005,gamma:.995,batch:64,targetEvery:500,difficulty:15,episodes:100,algorithm:'double'}))$(id).value=val;$('shaping').checked=true;$('curriculum').checked=false;$('clipReward').checked=false;rewardCfg={...REWARD_DEFAULT};for(let[k,v]of Object.entries(rewardCfg))$('rw_'+k).value=v;buildNetwork();$('evalResult').textContent='Bộ mẫu vừa khởi tạo: chưa có kết quả test.';$('validationReport').textContent='Đã đặt seed42 và toàn bộ cấu hình mẫu. Tiếp theo bấm Tạo ví dụ & học có hướng dẫn.';setLearnStatus('Bộ mẫu đã sẵn sàng. Mạng mới chưa học; bấm Tạo ví dụ & học có hướng dẫn.');};
+
+$('demoLearn').onclick=async()=>{if(training||evaluating||demoBusy)return;run=false;demoBusy=true;demoCancel=false;demoReplay=[];demoCount=0;renderLearning();let wins=0;try{for(let ep=0;ep<500&&!demoCancel;ep++){let env={z:{x:random()*4-2,y:4+random()*5,vx:0,vy:0,a:(random()*2-1)*15*Math.PI/180,w:0,q:100,time:0},time:0},trajectory=[],tr;do{let state=obs(env.z),a=expertAction(env.z);tr=envTransition(env,a);trajectory.push({s:state,a,r:clipReward?Math.sign(tr.r):.01*(tr.r+tr.shaping),next:tr.next,done:tr.done,demo:true})}while(!tr.done);demoCount++;if(tr.safe){wins++;demoReplay.push(...trajectory);if(demoReplay.length>20000)demoReplay.splice(0,demoReplay.length-20000)}if(ep%10===0){setLearnStatus('Tạo ví dụ: '+demoCount+'/500 lượt; '+wins+' đáp an toàn; '+demoReplay.length+' mẫu. Không tính vào thành tích DQN.');await new Promise(r=>setTimeout(r,0))}}if(demoReplay.length<512)throw Error('Chưa đủ ví dụ an toàn; giữ mạng cũ, cần ít nhất 512 mẫu.');replay=[...demoReplay];replayPos=0;let stop=updates+75000,bestModel=null,bestWins=-1,bestReward=-Infinity,bestAt=0;while(updates<stop&&!demoCancel){let until=performance.now()+12;do{updateNetwork()}while(performance.now()<until&&updates<stop&&!demoCancel&&updates%5000!==0);if(updates%5000===0&&!demoCancel){let val=await validatePolicy();if(val.wins>bestWins||(val.wins===bestWins&&val.reward>bestReward)){bestWins=val.wins;bestReward=val.reward;bestModel=net.clone();bestAt=updates}$('validationReport').textContent='Validation '+val.wins+'/20 tại cập nhật '+updates+'; tốt nhất '+bestWins+'/20 tại '+bestAt+'. Chưa dùng tập test100 để chọn mạng.';}setLearnStatus('TD + margin trên ví dụ: '+updates+' cập nhật; '+demoReplay.length+' mẫu. Dừng học để dừng; chưa phải thành công DQN.');renderLearning();await new Promise(r=>setTimeout(r,0))}if(bestModel){net=bestModel;targetNet=net.clone();targetCopies++;netOrigin='TD + 5×margin · best validation '+bestWins+'/20 tại cập nhật '+bestAt;}else netOrigin='TD + 5×margin · học từ ví dụ';warmStart=true;lastPass=net.forward(obs(s));setLearnStatus((demoCancel?'Đã dừng. ':'Đã học từ ví dụ. ')+'Đây là TD + large-margin với replay đều, lấy cảm hứng DQfD, không phải DQfD đầy đủ. Bấm Kiểm tra 100 lượt để đo mạng; có thể tiếp tục học RL.')}catch(e){setLearnStatus(e.message)}finally{demoBusy=false;renderLearning()}};
+
+$('saveHTML').onclick=()=>{stopLearning();let payload={origin:netOrigin,warmStart,demoCount,sizes:net.sizes,activation:net.activation,layers:net.layers,rewardCfg,trainSteps,completed,updates,targetCopies,algorithm:$('algorithm').value,shaping:$('shaping').checked,curriculum:$('curriculum').checked,clipReward,settings:Object.fromEntries(['seed','layers','activation','lossKind','lr','gamma','batch','targetEvery','difficulty'].map(id=>[id,$(id).value]))};let doc=document.documentElement.cloneNode(true);for(let id of ['valves','positions','networkHost','chartHost','rewardFields','learnMetrics','qValues']){let host=doc.querySelector('#'+id);if(host)host.innerHTML=''}let old=doc.querySelector('#savedModel');if(old)old.remove();let el=document.createElement('script');el.id='savedModel';el.type='application/json';el.textContent=JSON.stringify(payload);doc.querySelector('head').appendChild(el);let blob=new Blob(['<!doctype html>'+doc.outerHTML],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Roadster_6_Voi_Double_DQN_DaLuu.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setLearnStatus('Đã tải HTML chứa mạng 6 vòi hiện tại. Khi mở lại sẽ dùng mạng này; replay và trạng thái optimizer không được lưu, nên tiếp tục học là phiên mới, không phải resume chính xác.');};
+function restoreSaved(){let el=$('savedModel');if(!el)return;try{let p=JSON.parse(el.textContent);if(!Array.isArray(p.sizes)||p.sizes[0]!==9||p.sizes.at(-1)!==64)throw Error('Sai kích thước mạng lưu');for(let[id,value]of Object.entries(p.settings))$(id).value=value;rewardCfg=p.rewardCfg;for(let[k,v]of Object.entries(rewardCfg))$('rw_'+k).value=v;$('algorithm').value=p.algorithm;$('shaping').checked=p.shaping;$('curriculum').checked=p.curriculum;$('clipReward').checked=p.clipReward;clipReward=p.clipReward;demoCount=p.demoCount||0;netOrigin=p.origin||'Mạng nạp từ HTML';warmStart=!!p.warmStart;net=new QNetwork(p.sizes,p.activation);net.layers=p.layers;targetNet=net.clone();trainSteps=p.trainSteps;completed=p.completed;updates=p.updates;targetCopies=p.targetCopies;lastPass=net.forward(obs(s));setLearnStatus((p.origin?p.origin+' · ':'')+'Đã nạp trọng số lưu trong HTML. Replay/optimizer mới; chưa kiểm tra độc lập trong phiên này.');renderLearning()}catch(e){setLearnStatus('Không nạp được mạng lưu: '+e.message)}}
+restoreSaved();
+for(let id of ['algorithm','shaping','curriculum','clipReward','gamma','difficulty','seed'])$(id).onchange=()=>{buildNetwork();$('evalResult').textContent='Đổi thiết lập: đã đặt lại mạng và replay; chưa kiểm tra độc lập.'};
+// Expose deterministic core only for inspection and automated checks; no external requests.
+window.RoadsterLab={QNetwork,obs,contacts,integrate,envTransition,potential,learnStep,buildNetwork,reset,get:()=>({net,targetNet,trainSteps,completed,updates,lastReward,losses,replay,rewardCfg}),setPose:z=>{s={...z};t=z.time||0},setSeed:v=>{rngState=v}};
+
+function frame(ms){let dt=Math.min(.05,(ms-last)/1000||0);last=ms;trainTick(ms);if(run){acc+=dt;while(acc>=1/120&&run){step(1/120);acc-=1/120}}draw();if(!training&&ms-displayAt>250){displayAt=ms;if($('mode').value==='dqn'){lastPass=net.forward(obs(s));}renderLearning()}requestAnimationFrame(frame)}requestAnimationFrame(frame);
+})();
+</script></html>
